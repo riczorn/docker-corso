@@ -1,0 +1,32 @@
+entryPoints:
+  web:
+    address: :80
+    http:
+      redirections:
+        entryPoint:
+          to: web-secure
+          scheme: https
+
+  web-secure:
+    address: :443
+
+providers:
+  docker:
+    endpoint: unix:///var/run/docker.sock
+    watch: true
+    exposedByDefault: false
+
+api:
+  dashboard: true
+  insecure: true
+
+log:
+  filePath: "/etc/traefik/traefik.log"
+
+certificatesResolvers:
+  le:
+    acme:
+      email: support@tmg.it
+      storage: /etc/traefik/acme.json
+      httpChallenge:
+        entryPoint: web

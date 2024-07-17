@@ -1,0 +1,65 @@
+version: '3'
+
+services:
+  traefik:
+    image: traefik:latest
+    restart: always
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - traefik-proxy
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik-data:/etc/traefik
+      - ./traefik-data/acme.json:/acme.json
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik-secure.entrypoints=web-secure"
+      - "traefik.http.routers.traefik-secure.rule=PathPrefix(`/traefik`)"
+      - "traefik.http.middlewares.traefik-remove-path.stripprefix.prefixes=/traefik"
+      # HOLD: non aggiungere il middleware ancora
+      # rif multiple middlewares require a chain: https://bacardi55.io/2021/04/11/using-multiple-traefik-middlewares-using-docker-labels/
+      # - "traefik.http.routers.traefik-secure.middlewares=traefik-remove-path"
+      - "traefik.http.middlewares.traefik-auth.basicauth.users=ric:$$apr1$$IiJly5BM$$kUvnBpGRJAJx0bj.3D8Rs/"
+      - "traefik.http.routers.traefik-secure.tls=true"
+      - "traefik.http.routers.traefik-secure.tls.certresolver=le"
+      - "traefik.http.routers.traefik-secure.service=api@internal"
+      - "traefik.http.routers.traefik-secure.middlewares=secured"
+      # Add all middlewares in the chain:
+      - traefik.http.middlewares.secured.chain.middlewares=traefik-remove-path,traefik-auth
+
+  portainer:
+    image: portainer/portainer-ce:linux-amd64-2.16.2
+    container_name: portainer
+    restart: always
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - traefik-proxy
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./portainer-data:/data
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.portainer-secure.entrypoints=web-secure"
+      # Serviamo portainer sotto il percorso /portainer:
+      - "traefik.http.routers.portainer-secure.rule=PathPrefix(`/portainer`)"
+      # Rimuovo il percorso nell'invio
+      - "traefik.http.middlewares.portainer-remove-path.stripprefix.prefixes=/portainer"
+      # e aggiungo la regola ai middleware
+      - "traefik.http.routers.portainer-secure.middlewares=portainer-remove-path"
+      - "traefik.http.routers.portainer-secure.tls=true"
+      - "traefik.http.routers.portainer-secure.tls.certresolver=le"
+      - "traefik.http.routers.portainer-secure.service=portainer"
+      - "traefik.http.services.portainer.loadbalancer.server.port=9000"
+      - "traefik.docker.network=traefik-proxy"
+
+networks:
+  traefik-proxy:
+    external: true

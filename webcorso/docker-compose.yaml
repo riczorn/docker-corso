@@ -1,0 +1,21 @@
+###############################################################################
+#                          PHP nginx mariadb phpmyadmin                       #
+###############################################################################
+version:            "3.1"
+services:
+  webserver:
+    image:          nginx:alpine
+    hostname:       webserver
+    container_name: ${STACK_PREFIX}-webserver
+    working_dir:    /application
+    environment:
+      - BASE_HOSTNAME:${BASE_HOSTNAME}
+    volumes:
+      - .:/application
+      - ./public:/usr/share/nginx/html
+      - log-disk:/var/log/nginx
+    ports:
+      - 8080:80
+      - 8443:443
+volumes:
+    log-disk:

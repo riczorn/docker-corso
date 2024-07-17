@@ -6,10 +6,10 @@ services:
   webserver:
     image:          nginx:alpine
     hostname:       webserver
-    container_name: ${STACK_PREFIX}-webserver
+    container_name: corso-webserver
     working_dir:    /application
-    environment:
-      - BASE_HOSTNAME:${BASE_HOSTNAME}
+    networks:
+      - traefik-proxy
     volumes:
       - .:/application
       - ./public:/usr/share/nginx/html
@@ -19,3 +19,7 @@ services:
       - 8443:443
 volumes:
     log-disk:
+
+networks:
+  traefik-proxy:
+    external: true

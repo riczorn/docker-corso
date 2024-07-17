@@ -19,7 +19,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.kuma-secure.entrypoints=web-secure"
       # Serviamo kuma sotto il percorso /kuma:
-      - "traefik.http.routers.kuma-secure.rule=Host(`odoo3.fasterweb.net`) && PathPrefix(`/kuma`)"
+      - "traefik.http.routers.kuma-secure.rule=PathPrefix(`/kuma`)"
       # Rimuovo il percorso nell'invio
       - "traefik.http.middlewares.kuma-remove-path.stripprefix.prefixes=/kuma"
       # e aggiungo la regola ai middleware

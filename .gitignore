@@ -1,2 +1,3 @@
 core/portainer-data
 sync-to-corsoweb.sh
+core/traefik-data/traefik.log

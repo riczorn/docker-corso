@@ -17,6 +17,20 @@ services:
     ports:
       - 8080:80
       - 8443:443
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.webcorso-secure.entrypoints=web-secure"
+      # Serviamo portainer sotto il percorso /portainer:
+      - "traefik.http.routers.webcorso-secure.rule=PathPrefix(`/webcorso`)"
+      # Rimuovo il percorso nell'invio
+      - "traefik.http.middlewares.webcorso-remove-path.stripprefix.prefixes=/webcorso"
+      # e aggiungo la regola ai middleware
+      - "traefik.http.routers.webcorso-secure.middlewares=webcorso-remove-path"
+      - "traefik.http.routers.webcorso-secure.tls=true"
+      - "traefik.http.routers.webcorso-secure.tls.certresolver=le"
+      - "traefik.http.routers.webcorso-secure.service=webserver"
+      - "traefik.http.services.webserver.loadbalancer.server.port=80"
+      - "traefik.docker.network=traefik-proxy"
 volumes:
     log-disk:
 
